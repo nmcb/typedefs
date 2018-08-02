@@ -1,7 +1,10 @@
 import Data.Vect
+import Data.Vect.Quantifiers
+
 import Data.Fin
 import Types
 import Typedefs
+import TermCodec
 
 ------ example: bits -
 
@@ -52,6 +55,14 @@ nil x = Inn $ Left ()
 ||| @xs the tail of the list to construct
 cons : (a : Type) -> (x : a) -> (xs : Ty [a] Main.list) -> Ty [a] Main.list
 cons a x xs = Inn $ Right (x, xs)
+
+--- 
+
+sjust : String
+sjust = serialize {ts=[Int]} [%implementation] Main.maybe (Main.just Int 2)
+
+slist : String
+slist = serialize {ts=[Int]} [%implementation] Main.list (Main.cons Int 1 $ Main.cons Int 2 $ Main.nil Int)
 
 
 main : IO ()

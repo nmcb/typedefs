@@ -44,14 +44,14 @@ mutual
   Ty     tvars T1         = Unit
   Ty {n} tvars (TSum xs)  = tsum xs
     where
-    tsum : Vect (2 + _) (TDef n) -> Type
-    tsum [x, y]              = Either (Ty tvars x) (Ty tvars y)
-    tsum (x :: y :: z :: zs) = Either (Ty tvars x) (tsum (y :: z :: zs))
+    tsum : Vect (2 + k) (TDef n) -> Type
+    tsum {k=Z}   [x, y]              = Either (Ty tvars x) (Ty tvars y)
+    tsum {k=S k} (x :: y :: z :: zs) = Either (Ty tvars x) (assert_total $ Ty tvars (TSum (y :: z :: zs)))
   Ty {n} tvars (TProd xs) = tprod xs
     where
-    tprod : Vect (2 + _) (TDef n) -> Type
+    tprod : Vect (2 + k) (TDef n) -> Type
     tprod [x, y]              = Pair (Ty tvars x) (Ty tvars y)
-    tprod (x :: y :: z :: zs) = Pair (Ty tvars x) (tprod (y :: z :: zs))
+    tprod (x :: y :: z :: zs) = Pair (Ty tvars x) (assert_total $ Ty tvars (TProd (y :: z :: zs)))
   Ty     tvars (TVar v)   = Vect.index v tvars
   Ty     tvars (TMu _ m)  = Mu tvars (args m)
     where 
