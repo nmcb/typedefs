@@ -40,24 +40,20 @@ mutual
   ||| typedef. The De Bruijn indices in the `TVar`s in this typedef will be
   ||| mapped onto (i.e. instantiated at) the Idris types in `tvars`.
   Ty : Vect n Type -> TDef n -> Type
-  Ty     tvars T0         = Void
-  Ty     tvars T1         = Unit
-  Ty {n} tvars (TSum xs)  = tsum xs
-    where
-    tsum : Vect (2 + k) (TDef n) -> Type
-    tsum {k=Z}   [x, y]              = Either (Ty tvars x) (Ty tvars y)
-    tsum {k=S k} (x :: y :: z :: zs) = Either (Ty tvars x) (assert_total $ Ty tvars (TSum (y :: z :: zs)))
-  Ty {n} tvars (TProd xs) = tprod xs
-    where
-    tprod : Vect (2 + k) (TDef n) -> Type
-    tprod [x, y]              = Pair (Ty tvars x) (Ty tvars y)
-    tprod (x :: y :: z :: zs) = Pair (Ty tvars x) (assert_total $ Ty tvars (TProd (y :: z :: zs)))
-  Ty     tvars (TVar v)   = Vect.index v tvars
-  Ty     tvars (TMu _ m)  = Mu tvars (args m)
+  Ty tvars T0         = Void
+  Ty tvars T1         = Unit
+  Ty tvars (TSum xs)  = Tnary tvars xs Either 
+  Ty tvars (TProd xs) = Tnary tvars xs Pair 
+  Ty tvars (TVar v)   = Vect.index v tvars
+  Ty tvars (TMu _ m)  = Mu tvars (args m)
     where 
     args []                 = T0
     args [(_,m)]            = m
-    args ((_,m)::(_,l)::ms) = TSum (m :: l :: map snd (fromList ms))
+    args ((_,m)::(_,l)::ms) = TSum (m :: l :: fromList (map snd ms))
+
+  Tnary : Vect n Type -> Vect (2 + k) (TDef n) -> (Type -> Type -> Type) -> Type   
+  Tnary tvars [x, y]              c = c (Ty tvars x) (Ty tvars y)
+  Tnary tvars (x :: y :: z :: zs) c = c (Ty tvars x) (Tnary tvars (y :: z :: zs) c)
 
 ------ meta ----------
 
